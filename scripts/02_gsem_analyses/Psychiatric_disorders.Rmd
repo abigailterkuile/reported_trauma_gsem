@@ -24,7 +24,7 @@ require(stats)
 ```{r run multivariable LDSC, create S V matrices}
 # load in munged summary statistics
 traits <- c("data/CTS_noMHC.sumstats.gz", # Childhood maltreatment (PMID: 30478444)
-            "data/ADHD05_noMHC.sumstats.gz", # ADHD (PMID: )
+            "data/ADHD05_noMHC.sumstats.gz", # ADHD (PMID: 30478444)
             "data/ALCD03_noMHC.sumstats.gz", # Alcohol dependence (PMID: 30482948)
             "data/ANXI03_noMHC.sumstats.gz", # Any lifetime anxiety disorder (PMID: 31748690)
             "data/AUTI07_noMHC.sumstats.gz", # Autism spectrum disorder (PMID: 30804558)

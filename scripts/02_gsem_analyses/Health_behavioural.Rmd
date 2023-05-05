@@ -23,18 +23,18 @@ require(stats)
 ```{r run multivariable LDSC, create S V matrices}
 # load in munged summary statistics
 traits <- c(
-"data/CTS_noMHC.sumstats.gz",
-"data/TIRE01_noMHC.sumstats.gz", 
-"data/SUBJ01_noMHC.sumstats.gz",
-"data/RISK03_noMHC.sumstats.gz",
-"data/RISK01_noMHC.sumstats.gz",
-"data/INCO03_noMHC.sumstats.gz", 
-"data/HEAL01_noMHC.sumstats.gz",
-"data/REPR01_noMHC.sumstats.gz",
-"data/SMOK06_noMHC.sumstats.gz",
-"data/NEUR02B_noMHC.sumstats.gz",
-"data/INSO02_noMHC.sumstats.gz",
-"data/LONG04_noMHC.sumstats.gz")
+"data/CTS_noMHC.sumstats.gz", # Childhood maltreatment (PMID: 33740410)
+"data/TIRE01_noMHC.sumstats.gz", # self-reported tiredness (PMID: 28322280)
+"data/SUBJ01_noMHC.sumstats.gz", # subjective well-being (PMID: 27089181)
+"data/RISK03_noMHC.sumstats.gz", # number of sexual partners (PMID: 30643258)
+"data/RISK01_noMHC.sumstats.gz", # general risk tolerance (PMID: 30643258)
+"data/INCO03_noMHC.sumstats.gz", # social deprivation (PMID: 27818178)
+"data/HEAL01_noMHC.sumstats.gz", # self-reported health (PMID: 27864402)
+"data/REPR01_noMHC.sumstats.gz", # age at first birth (PMID: 27798627)
+"data/SMOK06_noMHC.sumstats.gz", # ever smoker (PMID: 30643258)
+"data/NEUR02B_noMHC.sumstats.gz", # neuroticism (PMID: 30593698)
+"data/INSO02_noMHC.sumstats.gz", # Insomnia (PMID: 30804565)
+"data/LONG04_noMHC.sumstats.gz") # Parental attained age (PMID:27015805)
 
 #Sample prevalence
 sample.prev <- c(NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, .28, NA)

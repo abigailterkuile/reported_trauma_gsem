@@ -23,14 +23,14 @@ require(stats)
 # 2.Run multivariable LDSC to create the S and V matrices
 ```{r run multivariable LDSC, create S V matrices}
 # load in munged summary statistics
-traits <- c("data/CTS_noMHC.sumstats.gz",
-            "data/ADHD05_noMHC.sumstats.gz",
-            "data/ALCD03_noMHC.sumstats.gz",
-            "data/ANXI03_noMHC.sumstats.gz",
-            "data/AUTI07_noMHC.sumstats.gz",
-            "data/DEPR01_noMHC.sumstats.gz",
-            "data/SCHI02_noMHC.sumstats.gz",
-            "data/TotalPCL_MVP_eur_noMHC.sumstats.gz")
+traits <- c("data/CTS_noMHC.sumstats.gz", # Childhood maltreatment (PMID: 30478444)
+            "data/ADHD05_noMHC.sumstats.gz", # ADHD (PMID: )
+            "data/ALCD03_noMHC.sumstats.gz", # Alcohol dependence (PMID: 30482948)
+            "data/ANXI03_noMHC.sumstats.gz", # Any lifetime anxiety disorder (PMID: 31748690)
+            "data/AUTI07_noMHC.sumstats.gz", # Autism spectrum disorder (PMID: 30804558)
+            "data/DEPR01_noMHC.sumstats.gz", # Major depressive disorder (PMID: 29700475)
+            "data/SCHI02_noMHC.sumstats.gz", # Schizophrenia (PMID: 25056061)
+            "data/TotalPCL_MVP_eur_noMHC.sumstats.gz") # PTSD symptoms (PMID: 33510476)
 
 #Sample prevalence
 sample.prev <- c(NA,.36,.25,.30,.40,.28,.44,NA)

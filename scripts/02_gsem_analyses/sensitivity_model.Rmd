@@ -1,0 +1,99 @@
+---
+title: "Sensitivity analyses - combined multiple regression with independent traits & top traits"
+author: "Abigail ter Kuile"
+date: "14/01/2022"
+output: html_document
+---
+
+Resources: https://github.com/GenomicSEM/GenomicSEM/wiki/3.-Models-without-Individual-SNP-effects
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Set up 
+
+```{r clear workspace}
+rm(list = ls())
+```
+
+```{r load required packages}
+require(GenomicSEM)
+library(devtools)
+require(Matrix)
+require(stats)
+```
+
+# Run multivariable LDSC to create the S and V matrices
+```{r run multivariable LDSC, create S V matrices}
+# load in munged summary statistics
+traits <- c("data/CTS_noMHC.sumstats.gz",
+            "data/AUTI07_noMHC.sumstats.gz",
+            "data/RISK01_noMHC.sumstats.gz",
+            "data/SUBJ01_noMHC.sumstats.gz",
+            "data/TotalPCL_MVP_eur_noMHC.sumstats.gz",
+            "data/TIRE01_noMHC.sumstats.gz",
+            "data/ADHD05_noMHC.sumstats.gz"
+            )
+#Sample prevalence
+sample.prev <- c(NA,.40, NA, NA, NA, NA,.36)
+
+#Population prevalence
+population.prev <- c(NA,.01, NA, NA, NA, NA,.05)
+
+#the folder of LD scores
+ld <- ("data/eur_w_ld_chr/")
+#the folder of LD weights
+wld <- ("data/eur_w_ld_chr/")
+
+# Set trait names
+trait.names<-c("CTS", "ASD", "Risk", "Subjective_wellbeing", "PTSD", "Tiredness", "ADHD")
+
+#run LDSC
+comb_regression_top_cts_ptsd <- ldsc(traits, sample.prev, population.prev, ld, wld, trait.names, ldsc.log="comb_regression_top_cts_ptsd")
+```
+
+
+```{r save the ldsc output}
+save(comb_regression_top_cts_ptsd, file="comb_regression_top_cts_ptsd.RData")
+```
+
+```{r load the ldsc output}
+load(file="comb_regression_top_cts_ptsd.RData")
+```
+
+###specify a model in which CTS is regressed on the top rG traits that are independent contributors 
+```{r specify model}
+combined_cts_model <- 'CTS ~ ASD + Risk + Subjective_wellbeing + PTSD + Tiredness + ADHD
+ASD ~~ Risk
+ASD ~~ Subjective_wellbeing
+Risk ~~ Subjective_wellbeing
+PTSD ~~ ASD
+PTSD ~~ Risk
+PTSD ~~ Subjective_wellbeing
+PTSD ~~ Tiredness
+Tiredness ~~ ASD
+Tiredness ~~ Risk
+Tiredness ~~ Subjective_wellbeing
+ADHD ~~ ASD
+ADHD ~~ Risk
+ADHD ~~ Subjective_wellbeing
+ADHD ~~ Tiredness
+ADHD ~~ PTSD
+'
+```
+
+#run the model using the user defined function
+```{r run model}
+combined_cts_output <- usermodel(covstruc = comb_regression_top_cts_ptsd, estimation = "DWLS", model = combined_cts_model, CFIcalc = TRUE, std.lv = FALSE, imp_cov = FALSE)
+```
+
+#print the output
+```{r print}
+combined_cts_output
+```
+
+#save
+```{r save}
+write.csv(combined_cts_output, file = "sensitivity_cts_output.csv", row.names = FALSE, col.names = TRUE, quote = FALSE)
+```

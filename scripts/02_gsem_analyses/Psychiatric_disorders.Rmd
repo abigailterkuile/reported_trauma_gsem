@@ -1,0 +1,240 @@
+---
+title: "Multiple regression (childhood maltreatment & psychiatric disorders)"
+author: "Abigail ter Kuile"
+date: "14/01/2022"
+output: html_document
+---
+
+Resources: https://github.com/GenomicSEM/GenomicSEM/wiki/3.-Models-without-Individual-SNP-effects
+
+#Clear workspace
+```{r clear workspace}
+rm(list = ls())
+```
+
+```{r load required packages}
+require(GenomicSEM)
+library(devtools)
+require(Matrix)
+require(stats)
+```
+
+
+# 2.Run multivariable LDSC to create the S and V matrices
+```{r run multivariable LDSC, create S V matrices}
+# load in munged summary statistics
+traits <- c("data/CTS_noMHC.sumstats.gz",
+            "data/ADHD05_noMHC.sumstats.gz",
+            "data/ALCD03_noMHC.sumstats.gz",
+            "data/ANXI03_noMHC.sumstats.gz",
+            "data/AUTI07_noMHC.sumstats.gz",
+            "data/DEPR01_noMHC.sumstats.gz",
+            "data/SCHI02_noMHC.sumstats.gz",
+            "data/TotalPCL_MVP_eur_noMHC.sumstats.gz")
+
+#Sample prevalence
+sample.prev <- c(NA,.36,.25,.30,.40,.28,.44,NA)
+
+#Population prevalence
+population.prev <- c(NA,.05,.159,.16,.01,.15,.01,NA)
+
+#the folder of LD scores
+ld <- ("data/eur_w_ld_chr/")
+#the folder of LD weights
+wld <- ("data/eur_w_ld_chr/")
+
+# Set trait names
+trait.names<-c("CTS",
+               "ADHD",
+               "ALCH",
+               "ANX",
+               "ASD",
+               "MDD",
+               "SCZ",
+               "PTSD")
+
+#run LDSC
+PD_regression_cts_ptsd_tot <- ldsc(traits,
+                                   sample.prev,
+                                   population.prev,
+                                   ld,
+                                   wld,
+                                   trait.names,
+                                   ldsc.log="PD_regression_cts_ptsd_tot")
+```
+
+optional command to save the output as a .RData file for later use
+```{r save the ldsc output}
+save(PD_regression_cts_ptsd_tot, file="PD_regression_cts_ptsd_tot.RData")
+```
+
+load the output if using later
+```{r load the ldsc output}
+load(file="PD_regression_cts_ptsd_tot.RData")
+```
+
+###TRAIT 1 ADHD: specify a model in which CTS is regressed on the top rG trait (ADHD)
+```{r trait 1 specify PTSD PTSD model}
+adhd_model <- 'CTS ~ ADHD'
+```
+
+#run the model using the user defined function
+```{r run PTSD model}
+adhd_output <- usermodel(covstruc = PD_regression_cts_ptsd_tot, estimation = "DWLS", model = adhd_model, CFIcalc = TRUE, std.lv = FALSE, imp_cov = FALSE)
+```
+
+#print the output
+```{r output PTSD}
+adhd_output
+```
+
+###TRAIT 2: add PTSD. Specify a model in which CTS is regressed on ADHD + PTSD
+```{r specify model add adhd}
+PTSD_model <- 'CTS ~ ADHD + PTSD
+ADHD ~~ PTSD'
+```
+
+#run the model using the user defined function
+```{r run +adhd model}
+PTSD_output <- usermodel(covstruc = PD_regression_cts_ptsd_tot, estimation = "DWLS", model = PTSD_model, CFIcalc = TRUE, std.lv = FALSE, imp_cov = FALSE)
+```
+
+#print the output
+```{r output PTSD}
+PTSD_output
+```
+
+###3RD TRAIT: add MDD. Specify a model in which CTS is regressed on ADHD + PTSD + MDD
+```{r add MDD specify model}
+MDD_model <- 'CTS ~ ADHD + PTSD + MDD
+PTSD ~~ ADHD
+PTSD ~~ MDD
+MDD ~~ ADHD'
+```
+
+#run the model using the user defined function
+```{r run +MDD model}
+MDD_output <- usermodel(covstruc = PD_regression_cts_ptsd_tot, estimation = "DWLS", model = MDD_model, CFIcalc = TRUE, std.lv = FALSE, imp_cov = FALSE)
+```
+
+#print the output
+```{r output +mdd}
+MDD_output
+```
+
+###4TH TRAIT: add alcohol dependence. Specify a model in which CTS is regressed on ADHD + PTSD + MDD + ALCH
+```{r +ALCH specify model}
+ALCH_model <- 'CTS ~ ADHD + PTSD + MDD + ALCH
+PTSD ~~ ADHD
+PTSD ~~ MDD
+MDD ~~ ADHD
+ALCH ~~ PTSD
+ALCH ~~ ADHD
+ALCH ~~ MDD
+'
+```
+
+#run the model using the user defined function
+```{r run +ALCH model}
+ALCH_output <- usermodel(covstruc = PD_regression_cts_ptsd_tot, estimation = "DWLS", model = ALCH_model, CFIcalc = TRUE, std.lv = FALSE, imp_cov = FALSE)
+```
+
+#print the output 
+```{r output +ALCH}
+ALCH_output
+```
+
+###5TH TRAIT: add Anxiety disorder . Specify a model in which CTS is regressed on ADHD + PTSD + MDD + ALCH + ANX
+```{r +ANX specify model}
+ANX_model <- 'CTS ~ ADHD + PTSD + MDD + ALCH + ANX
+PTSD ~~ ADHD
+PTSD ~~ MDD
+MDD ~~ ADHD
+ALCH ~~ PTSD
+ALCH ~~ ADHD
+ALCH ~~ MDD
+ANX ~~ PTSD
+ANX ~~ ADHD
+ANX ~~ MDD
+ANX ~~ ALCH
+'
+```
+
+#run the model using the user defined function
+```{r run +ANX model}
+ANX_output <- usermodel(covstruc = PD_regression_cts_ptsd_tot, estimation = "DWLS", model = ANX_model, CFIcalc = TRUE, std.lv = FALSE, imp_cov = FALSE)
+```
+
+#print the output 
+```{r output +ANX}
+ANX_output
+```
+
+###6TH TRAIT: add Autism spectrum disorder. Specify a model in which CTS is regressed on ADHD + PTSD + MDD + ALCH + ANX + ASD
+```{r +ASD specify model}
+ASD_model <- 'CTS ~ ADHD + PTSD + MDD + ALCH + ANX + ASD
+PTSD ~~ ADHD
+PTSD ~~ MDD
+MDD ~~ ADHD
+ALCH ~~ PTSD
+ALCH ~~ ADHD
+ALCH ~~ MDD
+ANX ~~ PTSD
+ANX ~~ ADHD
+ANX ~~ MDD
+ANX ~~ ALCH
+ASD ~~ PTSD
+ASD ~~ ADHD
+ASD ~~ MDD
+ASD ~~ ALCH
+ASD ~~ ANX
+'
+```
+
+#run the model using the user defined function
+```{r run +ASD model}
+ASD_output <- usermodel(covstruc = PD_regression_cts_ptsd_tot, estimation = "DWLS", model = ASD_model, CFIcalc = TRUE, std.lv = FALSE, imp_cov = FALSE)
+```
+
+#print the output 
+```{r output +ASD}
+ASD_output
+```
+
+###8TH TRAIT: add Schizophrenia. Specify a model in which CTS is regressed on ADHD + PTSD + MDD + ALCH + ANX + ASD + SCZ
+```{r +SCZspecify model}
+SCZ_model <- 'CTS ~ ADHD + PTSD + MDD + ALCH + ANX + ASD + SCZ
+PTSD ~~ ADHD
+PTSD ~~ MDD
+MDD ~~ ADHD
+ALCH ~~ PTSD
+ALCH ~~ ADHD
+ALCH ~~ MDD
+ANX ~~ PTSD
+ANX ~~ ADHD
+ANX ~~ MDD
+ANX ~~ ALCH
+ASD ~~ PTSD
+ASD ~~ ADHD
+ASD ~~ MDD
+ASD ~~ ALCH
+ASD ~~ ANX
+SCZ ~~ PTSD
+SCZ ~~ ADHD
+SCZ ~~ MDD
+SCZ ~~ ALCH
+SCZ ~~ ANX
+SCZ ~~ ASD
+'
+```
+
+#run the model using the user defined function
+```{r run +SCZ model}
+SCZ_output <- usermodel(covstruc = PD_regression_cts_ptsd_tot, estimation = "DWLS", model = SCZ_model, CFIcalc = TRUE, std.lv = FALSE, imp_cov = FALSE)
+```
+
+#print the output 
+```{r output +SCZ}
+SCZ_output
+```
+

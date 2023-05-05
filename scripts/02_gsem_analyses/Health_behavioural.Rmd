@@ -1,0 +1,462 @@
+---
+title: "Multiple regression (childhood maltreatment & social, psychological & health traits)"
+author: "Abigail ter Kuile"
+date: "14/01/2022"
+output: html_document
+---
+
+Resources: https://github.com/GenomicSEM/GenomicSEM/wiki/3.-Models-without-Individual-SNP-effects
+
+#Clear workspace
+```{r clear workspace}
+rm(list = ls())
+```
+
+```{r load required packages}
+require(GenomicSEM)
+library(devtools)
+require(Matrix)
+require(stats)
+```
+
+#Run multivariable LDSC to create the S and V matrices 
+```{r run multivariable LDSC, create S V matrices}
+# load in munged summary statistics
+traits <- c(
+"data/CTS_noMHC.sumstats.gz",
+"data/TIRE01_noMHC.sumstats.gz", 
+"data/SUBJ01_noMHC.sumstats.gz",
+"data/RISK03_noMHC.sumstats.gz",
+"data/RISK01_noMHC.sumstats.gz",
+"data/INCO03_noMHC.sumstats.gz", 
+"data/HEAL01_noMHC.sumstats.gz",
+"data/REPR01_noMHC.sumstats.gz",
+"data/SMOK06_noMHC.sumstats.gz",
+"data/NEUR02B_noMHC.sumstats.gz",
+"data/INSO02_noMHC.sumstats.gz",  
+"data/INCO01_noMHC.sumstats.gz",
+"data/LONG04_noMHC.sumstats.gz",
+"data/LONG01_noMHC.sumstats.gz")
+
+#Sample prevalence
+sample.prev <- c(NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, .28, NA, NA, NA)
+
+#Population prevalence
+population.prev <- c(NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, .30, NA, NA, NA)
+
+#the folder of LD scores
+ld <- ("/data/eur_w_ld_chr/")
+#the folder of LD weights
+wld <- ("/data/eur_w_ld_chr/")
+
+# Set trait names
+trait.names<-c("CTS", "Tiredness", "Subj. wellbeing", "Sexual partners", "Risk", "Social dep", "Health", "Age first birth", "Ever smoker", "Neuroticism", "Insomnia", "Household income", "Parents attained age", "Parents age death")
+
+#run LDSC
+social_dem_traits_cts <- ldsc(traits, sample.prev, population.prev, ld, wld, trait.names, ldsc.log="social_dem_traits_cts")
+``` 
+
+optional command to save the output as a .RData file for later use
+```{r save the ldsc output}
+save(social_dem_traits_cts, file="social_dem_traits_cts.RData")
+```
+
+load the output if using later
+```{r load ldsc output if needed}
+load("social_dem_traits_cts.RData")
+```
+
+##1st TRAIT: add Tiredness. Specify a model in which CTS is regressed on top rg trait: self-reported tiredness
+```{r add tiredness specify model}
+Tiredness_model <- 'CTS ~ Tiredness'
+```
+
+#run the model using the user defined function
+```{r run +Tiredness model}
+Tiredness_output <- usermodel(covstruc = social_dem_traits_cts, estimation = "DWLS", model = Tiredness_model, CFIcalc = TRUE, std.lv = FALSE, imp_cov = FALSE)
+```
+
+#print the output
+```{r output +Tiredness}
+Tiredness_output
+```
+
+##2nd TRAIT: add Subjective well-being. Specify a model in which CTS is regressed on top rg trait: self-reported tiredness + Subjective well-being
+```{r add Subjective well-being specify model}
+subjwell_model <- 'CTS ~ Tiredness + Subj. wellbeing
+Tiredness ~~ Subj. wellbeing'
+```
+
+#run the model using the user defined function
+```{r run +subjwell model}
+subjwell_output <- usermodel(covstruc = social_dem_traits_cts, estimation = "DWLS", model = subjwell_model, CFIcalc = TRUE, std.lv = FALSE, imp_cov = FALSE)
+```
+
+#print the output
+```{r output +subjwell}
+subjwell_output
+```
+
+##3rd TRAIT: add Social deprivation. Specify a model in which CTS is regressed on top rg trait: self-reported tiredness + Subjective well-being + Social dep
+```{r add Social dep specify model}
+Socialdep_model <- 'CTS ~ Tiredness + Subj. wellbeing + Social dep
+Tiredness ~~ Subj. wellbeing
+Social dep ~~ Tiredness
+Social dep ~~ Subj. wellbeing'
+```
+
+#run the model using the user defined function
+```{r run +Socialdep model}
+Socialdep_output <- usermodel(covstruc = social_dem_traits_cts, estimation = "DWLS", model = Socialdep_model, CFIcalc = TRUE, std.lv = FALSE, imp_cov = FALSE)
+```
+
+#print the output
+```{r output +Socialdep}
+Socialdep_output
+```
+
+##4th TRAIT: add number of sexual partners. Specify a model in which CTS is regressed on top rg trait: self-reported tiredness + Subjective well-being + Social dep + number of sexual partners
+```{r add sexualpartners specify model}
+sexualpartners_model <- 'CTS ~ Tiredness + Subj. wellbeing + Social dep + Sexual partners
+Tiredness ~~ Subj. wellbeing
+Social dep ~~ Tiredness
+Social dep ~~ Subj. wellbeing
+Sexual partners ~~ Tiredness
+Sexual partners ~~ Subj. wellbeing
+Sexual partners ~~ Social dep
+'
+```
+
+#run the model using the user defined function
+```{r run +sexualpartners model}
+sexualpartners_output <- usermodel(covstruc = social_dem_traits_cts, estimation = "DWLS", model = sexualpartners_model, CFIcalc = TRUE, std.lv = FALSE, imp_cov = FALSE)
+```
+
+#print the output
+```{r output +sexualpartners}
+sexualpartners_output
+```
+
+##5th TRAIT: add number of self-rated health. Specify a model in which CTS is regressed on top rg trait: self-reported tiredness + Subjective well-being + Social dep + number of sexual partners + self rated health
+```{r add Health specify model}
+health_model <- 'CTS ~ Tiredness + Subj. wellbeing + Social dep + Sexual partners + Health
+Tiredness ~~ Subj. wellbeing
+Social dep ~~ Tiredness
+Social dep ~~ Subj. wellbeing
+Sexual partners ~~ Tiredness
+Sexual partners ~~ Subj. wellbeing
+Sexual partners ~~ Social dep
+Health ~~ Tiredness
+Health ~~ Subj. wellbeing
+Health ~~ Social dep
+Health ~~ Sexual partners
+'
+```
+
+#run the model using the user defined function
+```{r run +health model}
+health_output <- usermodel(covstruc = social_dem_traits_cts, estimation = "DWLS", model = health_model, CFIcalc = TRUE, std.lv = FALSE, imp_cov = FALSE)
+```
+
+#print the output
+```{r output +health}
+health_output
+```
+
+##6th TRAIT: add general risk tolerance. Specify a model in which CTS is regressed on top rg trait: self-reported tiredness + Subjective well-being + Social dep + number of sexual partners + self rated health + risk
+```{r add Risk specify model}
+Risk_model <- 'CTS ~ Tiredness + Subj. wellbeing + Social dep + Sexual partners + Health + Risk
+Tiredness ~~ Subj. wellbeing
+Social dep ~~ Tiredness
+Social dep ~~ Subj. wellbeing
+Sexual partners ~~ Tiredness
+Sexual partners ~~ Subj. wellbeing
+Sexual partners ~~ Social dep
+Health ~~ Tiredness
+Health ~~ Subj. wellbeing
+Health ~~ Social dep
+Health ~~ Sexual partners
+Risk ~~ Tiredness
+Risk ~~ Subj. wellbeing
+Risk ~~ Social dep
+Risk ~~ Sexual partners
+Risk ~~ Health
+'
+```
+
+#run the model using the user defined function
+```{r run +Risk model}
+Risk_output <- usermodel(covstruc = social_dem_traits_cts, estimation = "DWLS", model = Risk_model, CFIcalc = TRUE, std.lv = FALSE, imp_cov = FALSE)
+```
+
+#print the output
+```{r output +Risk}
+Risk_output
+```
+
+
+##7th TRAIT: add age first birth. Specify a model in which CTS is regressed on top rg trait: self-reported tiredness + Subjective well-being + Social dep + number of sexual partners + self rated health + risk + age first birth
+```{r 2 add birth specify model}
+birth_model2 <- 'CTS ~ Tiredness + Subj. wellbeing + Social dep + Sexual partners + Health + Risk + Age first birth
+Tiredness ~~ Subj. wellbeing
+Social dep ~~ Tiredness
+Social dep ~~ Subj. wellbeing
+Sexual partners ~~ Tiredness
+Sexual partners ~~ Subj. wellbeing
+Sexual partners ~~ Social dep
+Health ~~ Tiredness
+Health ~~ Subj. wellbeing
+Health ~~ Social dep
+Health ~~ Sexual partners
+Risk ~~ Tiredness
+Risk ~~ Subj. wellbeing
+Risk ~~ Social dep
+Risk ~~ Sexual partners
+Risk ~~ Health
+Age first birth ~~ Tiredness
+Age first birth ~~ Subj. wellbeing
+Age first birth ~~ Social dep
+Age first birth ~~ Sexual partners
+Age first birth ~~ Health
+Age first birth ~~ Risk
+'
+```
+
+#run the model using the user defined function
+```{r run +birth model}
+birth_output <- usermodel(covstruc = social_dem_traits_cts, estimation = "DWLS", model = birth_model2, CFIcalc = TRUE, std.lv = FALSE, imp_cov = FALSE)
+```
+
+#print the output
+```{r output +birth}
+birth_output
+```
+
+##8th TRAIT: add neuroticism. Specify a model in which CTS is regressed on top rg trait: self-reported tiredness + Subjective well-being + Social dep + number of sexual partners + self rated health + risk + age first birth + neurotisicsm
+```{r 2 add Neuroticism specify model}
+neuroticism_model2 <- 'CTS ~ Tiredness + Subj. wellbeing + Social dep + Sexual partners + Health + Risk + Age first birth + Neuroticism
+Tiredness ~~ Subj. wellbeing
+Social dep ~~ Tiredness
+Social dep ~~ Subj. wellbeing
+Sexual partners ~~ Tiredness
+Sexual partners ~~ Subj. wellbeing
+Sexual partners ~~ Social dep
+Health ~~ Tiredness
+Health ~~ Subj. wellbeing
+Health ~~ Social dep
+Health ~~ Sexual partners
+Risk ~~ Tiredness
+Risk ~~ Subj. wellbeing
+Risk ~~ Social dep
+Risk ~~ Sexual partners
+Risk ~~ Health
+Age first birth ~~ Tiredness
+Age first birth ~~ Subj. wellbeing
+Age first birth ~~ Social dep
+Age first birth ~~ Sexual partners
+Age first birth ~~ Health
+Age first birth ~~ Risk
+Neuroticism ~~ Tiredness
+Neuroticism ~~ Subj. wellbeing
+Neuroticism ~~ Social dep
+Neuroticism ~~ Sexual partners
+Neuroticism ~~ Health
+Neuroticism ~~ Risk
+Neuroticism ~~ Age first birth
+'
+```
+
+#run the model using the user defined function
+```{r run +neuroticism model}
+neuroticism_output <- usermodel(covstruc = social_dem_traits_cts, estimation = "DWLS", model = neuroticism_model2, CFIcalc = TRUE, std.lv = FALSE, imp_cov = FALSE)
+```
+
+#print the output
+```{r output +neuroticism}
+neuroticism_output
+``` 
+
+##9th TRAIT: add insomnia. Specify a model in which CTS is regressed on top rg trait: self-reported tiredness + Subjective well-being + Social dep + number of sexual partners + self rated health + risk + age first birth + neurotisicsm + insomnia
+```{r 2 add insomnia specify model}
+insomnia_model2 <- 'CTS ~ Tiredness + Subj. wellbeing + Social dep + Sexual partners + Health + Risk + Age first birth + Neuroticism + Insomnia
+Tiredness ~~ Subj. wellbeing
+Social dep ~~ Tiredness
+Social dep ~~ Subj. wellbeing
+Sexual partners ~~ Tiredness
+Sexual partners ~~ Subj. wellbeing
+Sexual partners ~~ Social dep
+Health ~~ Tiredness
+Health ~~ Subj. wellbeing
+Health ~~ Social dep
+Health ~~ Sexual partners
+Risk ~~ Tiredness
+Risk ~~ Subj. wellbeing
+Risk ~~ Social dep
+Risk ~~ Sexual partners
+Risk ~~ Health
+Age first birth ~~ Tiredness
+Age first birth ~~ Subj. wellbeing
+Age first birth ~~ Social dep
+Age first birth ~~ Sexual partners
+Age first birth ~~ Health
+Age first birth ~~ Risk
+Neuroticism ~~ Tiredness
+Neuroticism ~~ Subj. wellbeing
+Neuroticism ~~ Social dep
+Neuroticism ~~ Sexual partners
+Neuroticism ~~ Health
+Neuroticism ~~ Risk
+Neuroticism ~~ Age first birth
+Insomnia ~~ Tiredness
+Insomnia ~~ Subj. wellbeing
+Insomnia ~~ Social dep
+Insomnia ~~ Sexual partners
+Insomnia ~~ Health
+Insomnia ~~ Risk
+Insomnia ~~ Age first birth
+Insomnia ~~ Neuroticism
+'
+```
+
+#run the model using the user defined function
+```{r run +insomnia model}
+insomnia_output <- usermodel(covstruc = social_dem_traits_cts, estimation = "DWLS", model = insomnia_model2, CFIcalc = TRUE, std.lv = FALSE, imp_cov = FALSE)
+```
+
+#print the output
+```{r output +insomnia}
+insomnia_output
+``` 
+
+##10th TRAIT: add smoking. Specify a model in which CTS is regressed on top rg trait: self-reported tiredness + Subjective well-being + Social dep + number of sexual partners + self rated health + risk + age first birth + neurotisicsm + insomnia + Ever smoker
+```{r 2 add smoker specify model}
+smoker_model2 <- 'CTS ~ Tiredness + Subj. wellbeing + Social dep + Sexual partners + Health + Risk + Age first birth + Neuroticism + Insomnia + Ever smoker
+Tiredness ~~ Subj. wellbeing
+Social dep ~~ Tiredness
+Social dep ~~ Subj. wellbeing
+Sexual partners ~~ Tiredness
+Sexual partners ~~ Subj. wellbeing
+Sexual partners ~~ Social dep
+Health ~~ Tiredness
+Health ~~ Subj. wellbeing
+Health ~~ Social dep
+Health ~~ Sexual partners
+Risk ~~ Tiredness
+Risk ~~ Subj. wellbeing
+Risk ~~ Social dep
+Risk ~~ Sexual partners
+Risk ~~ Health
+Age first birth ~~ Tiredness
+Age first birth ~~ Subj. wellbeing
+Age first birth ~~ Social dep
+Age first birth ~~ Sexual partners
+Age first birth ~~ Health
+Age first birth ~~ Risk
+Neuroticism ~~ Tiredness
+Neuroticism ~~ Subj. wellbeing
+Neuroticism ~~ Social dep
+Neuroticism ~~ Sexual partners
+Neuroticism ~~ Health
+Neuroticism ~~ Risk
+Neuroticism ~~ Age first birth
+Insomnia ~~ Tiredness
+Insomnia ~~ Subj. wellbeing
+Insomnia ~~ Social dep
+Insomnia ~~ Sexual partners
+Insomnia ~~ Health
+Insomnia ~~ Risk
+Insomnia ~~ Age first birth
+Insomnia ~~ Neuroticism
+Ever smoker ~~ Tiredness
+Ever smoker ~~ Subj. wellbeing
+Ever smoker ~~ Social dep
+Ever smoker ~~ Sexual partners
+Ever smoker ~~ Health
+Ever smoker ~~ Risk
+Ever smoker ~~ Age first birth
+Ever smoker ~~ Neuroticism
+Ever smoker ~~ Insomnia
+'
+```
+
+#run the model using the user defined function
+```{r run +smoker model}
+smoker_output <- usermodel(covstruc = social_dem_traits_cts, estimation = "DWLS", model = smoker_model2, CFIcalc = TRUE, std.lv = FALSE, imp_cov = FALSE)
+```
+
+#print the output
+```{r output +smoker}
+smoker_output
+``` 
+
+##11th TRAIT: add parents attained age. Specify a model in which CTS is regressed on top rg trait: self-reported tiredness + Subjective well-being + Social dep + number of sexual partners + self rated health + risk + household income + age first birth + neurotisicsm + insomnia + Ever smoker + parents attained age 
+```{r 2 add parentsage specify model}
+parentsage_model2 <- 'CTS ~ Tiredness + Subj. wellbeing + Social dep + Sexual partners + Health + Risk + Age first birth + Neuroticism + Insomnia + Ever smoker + Parents attained age
+Tiredness ~~ Subj. wellbeing
+Social dep ~~ Tiredness
+Social dep ~~ Subj. wellbeing
+Sexual partners ~~ Tiredness
+Sexual partners ~~ Subj. wellbeing
+Sexual partners ~~ Social dep
+Health ~~ Tiredness
+Health ~~ Subj. wellbeing
+Health ~~ Social dep
+Health ~~ Sexual partners
+Risk ~~ Tiredness
+Risk ~~ Subj. wellbeing
+Risk ~~ Social dep
+Risk ~~ Sexual partners
+Risk ~~ Health
+Age first birth ~~ Tiredness
+Age first birth ~~ Subj. wellbeing
+Age first birth ~~ Social dep
+Age first birth ~~ Sexual partners
+Age first birth ~~ Health
+Age first birth ~~ Risk
+Neuroticism ~~ Tiredness
+Neuroticism ~~ Subj. wellbeing
+Neuroticism ~~ Social dep
+Neuroticism ~~ Sexual partners
+Neuroticism ~~ Health
+Neuroticism ~~ Risk
+Neuroticism ~~ Age first birth
+Insomnia ~~ Tiredness
+Insomnia ~~ Subj. wellbeing
+Insomnia ~~ Social dep
+Insomnia ~~ Sexual partners
+Insomnia ~~ Health
+Insomnia ~~ Risk
+Insomnia ~~ Age first birth
+Insomnia ~~ Neuroticism
+Ever smoker ~~ Tiredness
+Ever smoker ~~ Subj. wellbeing
+Ever smoker ~~ Social dep
+Ever smoker ~~ Sexual partners
+Ever smoker ~~ Health
+Ever smoker ~~ Risk
+Ever smoker ~~ Age first birth
+Ever smoker ~~ Neuroticism
+Ever smoker ~~ Insomnia
+Parents attained age ~~ Tiredness
+Parents attained age ~~ Subj. wellbeing
+Parents attained age ~~ Social dep
+Parents attained age ~~ Sexual partners
+Parents attained age ~~ Health
+Parents attained age ~~ Risk
+Parents attained age ~~ Age first birth
+Parents attained age ~~ Neuroticism
+Parents attained age ~~ Insomnia
+Parents attained age ~~ Ever smoker
+'
+```
+
+#run the model using the user defined function
+```{r run +parentsage model}
+parentsage_output <- usermodel(covstruc = social_dem_traits_cts, estimation = "DWLS", model = parentsage_model2, CFIcalc = TRUE, std.lv = FALSE, imp_cov = FALSE)
+```
+
+#print the output
+```{r output +parentsage}
+parentsage_output
+``` 
+

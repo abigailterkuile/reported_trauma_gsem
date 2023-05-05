@@ -1,0 +1,89 @@
+---
+title: "Genetic correlation analyses in LDSC (childhood maltreatment & 576 traits)"
+author: "Abigail ter Kuile"
+date: "14/01/2022"
+output: html_document
+---
+
+Resources: https://github.com/bulik/ldsc/wiki/Heritability-and-Genetic-Correlation
+
+
+This script runs ldsc rg between one trait (e.g. childhood maltreatment) and a specified list of traits in an internally curated summary statistics repository
+
+# Create genetic correlations script 1
+```{bash}
+cat <<'EOT'>> correlFromFile.sh
+#!/bin/bash -l
+
+#SBATCH -p shared,brc
+#SBATCH --mem 15G
+#SBATCH --nodes=1
+#SBATCH -t 24:00:00
+#SBATCH -J rGs_all
+
+#specified at end of ldsc.correlations.sh after correlFromFile.sh is called in, where $1 is munged_nomhc sumstats repo file for each trait, $2 specific single trait, $3 file path of output for each rg log
+input1=$1
+input2=$2
+output=$3
+ldsc=software/ldsc
+python=python2.7
+
+$python $ldsc/ldsc.py \
+--n-blocks 200 \
+--print-delete-vals \
+--rg ${input2},${input1} \ #note input1 and 2 have been swapped here so that the second trait (p2) is from the list of traits to get heritability results for each trait
+--ref-ld-chr $ldsc/eur_w_ld_chr/ \
+--w-ld-chr $ldsc/eur_w_ld_chr/ \
+--out ${output}
+
+gawk 'c&&c--;/^p1.*p2.*gcov_int_se$/{c=1}' ${output}.log
+#prepares results output file
+
+mv ${output}*delete /projects/CTS_gSEM/rGs_LDSC/output/results/correlations/deletevalues/
+#moves the delete values files into delete vaulues folder
+
+EOT
+```
+
+#Create Genetic correlations script 2
+```{bash}
+cat <<'EOT'>> ldsc.correlations.sh
+
+#!/bin/bash -l
+
+#SBATCH -p shared,brc
+#SBATCH --mem 15G
+#SBATCH --nodes=1
+#SBATCH -t 24:00:00
+#SBATCH -J rGs_all_CTS
+
+#name1 and 2 specified in command line when job submitted)
+#name1: munged and MHC cleaned trait from list
+#name2: munged and mhc cleaned trait of choice that will run rg with all traits from list
+
+name2=$2
+
+mkdir -p /projects/CTS_gSEM/rGs_LDSC/output/results/correlations/$name1
+
+varid=$1
+pathvarid="/scripts_folder/${varid}"
+countvarid=$(wc -l ${pathvarid}|awk '{printf $1}')
+
+for i in `seq 1 ${countvarid}`
+do name1=$(gawk -v myvar=$i 'NR==myvar{printf $1}' ${pathvarid})
+
+sh /scripts_folder/correlFromFile.sh \
+/sumstats/munged_noMHC/${name1}_noMHC.sumstats.gz \
+/projects/CTS_gSEM/data/munged/${name2}_noMHC.sumstats.gz \
+/projects/CTS_gSEM/rGs_LDSC/output/results/correlations/${name2}/${name1}_${name2}
+
+done
+
+EOT
+
+####STEP 4: SUBMIT SCRIPT 2 (WHICH WILL ALSO SUBMIT SCRIPT 1 USING SH):
+cd /scripts_folder/
+sbatch -p brc ldsc.correlations.sh mhc_removed_trait_list.txt CTS ## script 1, $1 = list of all sumstats, $2 = trauma
+
+```
+

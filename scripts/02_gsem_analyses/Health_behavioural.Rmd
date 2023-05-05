@@ -33,16 +33,14 @@ traits <- c(
 "data/REPR01_noMHC.sumstats.gz",
 "data/SMOK06_noMHC.sumstats.gz",
 "data/NEUR02B_noMHC.sumstats.gz",
-"data/INSO02_noMHC.sumstats.gz",  
-"data/INCO01_noMHC.sumstats.gz",
-"data/LONG04_noMHC.sumstats.gz",
-"data/LONG01_noMHC.sumstats.gz")
+"data/INSO02_noMHC.sumstats.gz",
+"data/LONG04_noMHC.sumstats.gz")
 
 #Sample prevalence
-sample.prev <- c(NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, .28, NA, NA, NA)
+sample.prev <- c(NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, .28, NA)
 
 #Population prevalence
-population.prev <- c(NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, .30, NA, NA, NA)
+population.prev <- c(NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, .30, NA)
 
 #the folder of LD scores
 ld <- ("/data/eur_w_ld_chr/")
@@ -50,7 +48,7 @@ ld <- ("/data/eur_w_ld_chr/")
 wld <- ("/data/eur_w_ld_chr/")
 
 # Set trait names
-trait.names<-c("CTS", "Tiredness", "Subj. wellbeing", "Sexual partners", "Risk", "Social dep", "Health", "Age first birth", "Ever smoker", "Neuroticism", "Insomnia", "Household income", "Parents attained age", "Parents age death")
+trait.names<-c("CTS", "Tiredness", "Subj. wellbeing", "Sexual partners", "Risk", "Social dep", "Health", "Age first birth", "Ever smoker", "Neuroticism", "Insomnia", "Parents attained age")
 
 #run LDSC
 social_dem_traits_cts <- ldsc(traits, sample.prev, population.prev, ld, wld, trait.names, ldsc.log="social_dem_traits_cts")
